@@ -1,20 +1,30 @@
 class Grid {
-    constructor(dir, tiles, dx, dy) {
-        this.dir = dir
-        this.tiles = tiles;
+    constructor(data) {
+        this.tiles = this.buildTiles(data);
         this.cells = [];
-        this.dx = dx;
-        this.dy = dy;
-        this.width = floor(width/dx);
-        this.height = floor(height/dy);
+
+        this.dx = data["images"][Object.keys(data["images"])[0]].width;
+        this.dy = data["images"][Object.keys(data["images"])[0]].height;
+
+        this.width = floor(width/this.dx);
+        this.height = floor(height/this.dy);
 
         for (let i = 0; i < this.width; i++) {
             this.cells[i] = [];
             for (let j = 0; j < this.height; j++) {
-                this.cells[i][j] = new Cell(i, j, tiles);
+                this.cells[i][j] = new Cell(i, j, this.tiles);
             }
         }
         
+    }
+
+    buildTiles(data){
+        console.log(data["tiles"]);
+        for(let tile of Object.entries(data["tiles"])){
+            console.log(tile);
+        }
+
+        return data['tiles'];
     }
 
 
@@ -37,9 +47,10 @@ class Grid {
                               
                     var left = neighbor.getAttribute('left');
                     if(!(left in data)){
-                        var symmetry = tiles_raw[left.split(" ")[0]];
-                        var rotation = left.split(" ")[1];
-                        data[left] = new Tile(left, symmetry, rotation);
+                        var filename = left.split(" ")[0];
+                        var symmetry = tiles_raw[filename];
+                        for(let tile of Tile.build(filename, symmetry))
+                            data[tile.name] = tile;
                     } 
 
                     var right = neighbor.getAttribute('right');
@@ -58,6 +69,9 @@ class Grid {
                     var tiles = []
 
                     for(let tile in data){
+
+                        // console.log(checkImage(dir + data[tile].filename + ".png"));
+
                         loadImage(data[tile].dir, img => {
                             data[tile].img = img
                             tiles.push(data[tile]);
@@ -75,6 +89,8 @@ class Grid {
                 })
             })
     }
+
+    
 
     select_random_tile_at_random_cell(){
         var i = Math.floor(Math.random()*this.width);
@@ -132,13 +148,7 @@ class Grid {
     compute(){
         var cords = this.select_random_tile_at_random_cell()
         this.collapse(cords);
-
-
-
-        
-    }
-
-    
+    }    
 
     render(){
         for (let i = 0; i < this.width; i++) {
@@ -149,6 +159,18 @@ class Grid {
             }
         }
     }
+      
+}
+
+function checkImage(dir) {
+    console.log(dir);
+    fetch(dir, { method: 'HEAD' })
+        .then(res => {
+            console.log(res);
+            if (res.ok)
+                return true;
+            return false;
+        })
 }
 
 class Cell{

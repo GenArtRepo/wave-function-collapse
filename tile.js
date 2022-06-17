@@ -1,7 +1,7 @@
 class Tile {
     constructor(filename, symmetry, rotation) {
+        this.name = filename + " " + rotation;
         this.filename = filename;
-        this.dir = dir + filename + ".png";
         this.img;
         
         this.symmetry = symmetry;
@@ -15,10 +15,11 @@ class Tile {
     }
 
     static build(filename, symmetry){
-        tiles = [];
+        var tiles = [];
         for (let i = 0; i < 4; i++) {
             tiles.push(new Tile(filename, symmetry, i));
         }
+        return tiles;
     }
 
     addNeighbor(neighbor, side){
