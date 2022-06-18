@@ -1,12 +1,14 @@
 class Tile {
-    constructor(filename, symmetry, rotation) {
-        this.name = filename + " " + rotation;
+    constructor(filename, symmetry, rotation, imgs) {
         this.filename = filename;
-        this.img;
-        
         this.symmetry = symmetry;
         this.rotation = rotation;
+        this.rotate_render = true;
+
+        this.name = filename + " " + rotation;
         
+        this.img = this.getImage(imgs);
+                
         this.up = new Set();
         this.down = new Set();
         this.right = new Set();
@@ -14,12 +16,26 @@ class Tile {
         this.collapse = false;
     }
 
-    static build(filename, symmetry){
-        var tiles = [];
+    static build(filename, symmetry, imgs){
+        var tiles = {};
         for (let i = 0; i < 4; i++) {
-            tiles.push(new Tile(filename, symmetry, i));
+            var tile = new Tile(filename, symmetry, i, imgs);
+            tiles[tile.name] = tile;
         }
         return tiles;
+    }
+
+    getImage(imgs){
+        if(this.name in imgs){
+            this.rotate_render = false;
+            return imgs[this.name];
+        }else{
+            if(this.filename in imgs){
+                return imgs[this.filename];
+            }else{
+                return imgs[this.name + " 0"];
+            }
+        }
     }
 
     addNeighbor(neighbor, side){

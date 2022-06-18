@@ -14,37 +14,38 @@ let settings = {
 function preload(){
     dir = "samples/Summer/";
     data = {}
-    var xml = loadXML(dir + "data.xml", (xml) => {
+    loadXML(dir + "data.xml", (xml) => {
         data["images"] = {};
         data["tiles"] = {};
         for(let tile of xml.getChildren('tile')){
             var name = tile.getString("name")
             data["tiles"][name] = tile.getString("symmetry");
             
-            if (!dir.indexOf("Summer")){
+            if (!dir.includes("Summer")){
                 img_dir = dir + name + ".png";
                 data["images"][name] = loadImage(img_dir);
+            }else{
+                n = 4
+                if (data["tiles"][name] == "X")
+                    n = 1
+
+                for (let i = 0; i < n; i++) {
+                    rot_name = name + " " + i;
+                    img_dir = dir + rot_name+ ".png";
+                    data["images"][rot_name] = loadImage(img_dir);   
+                } 
             }
              
         }
 
         data["neighbors"] = [];
         for(let neighbor of xml.getChildren('neighbor')){
-            new_neighbor = {
+            var new_neighbor = {
                 "left": neighbor.getString("left"),
                 "right": neighbor.getString("right")
             };
-            data["neighbors"].push(new_neighbor);
-
-            if (dir.indexOf("Summer")){
-                left_img_dir = dir + neighbor.getString("left") + ".png";
-                data["images"][new_neighbor["left"]] = loadImage(left_img_dir);
-                right_img_dir = dir + neighbor.getString("right") + ".png";
-                data["images"][new_neighbor["right"]] = loadImage(right_img_dir);
-            }            
+            data["neighbors"].push(new_neighbor);         
         }
-
-        
     });
 }
 
@@ -63,11 +64,9 @@ function setup(){
 
 function init(){
     background(0);
-    
-    console.log(data);
     grid = new Grid(data);
-    // grid.compute();
-    // grid.render();
+    grid.compute();
+    grid.render();
 }
 
 function draw(){
