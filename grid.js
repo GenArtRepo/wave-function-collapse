@@ -26,6 +26,7 @@ class Grid {
         for(let link of data["neighbors"]){
             var left = link["left"];
             var right = link["right"];
+
             tiles[left].addNeighbor(right, 'right');    
             tiles[right].addNeighbor(left, 'left'); 
         }
@@ -35,6 +36,10 @@ class Grid {
             list_tiles.push(tiles[tile]);
 
         return list_tiles;
+    }
+
+    addLink(tile_name){
+        tile_base = tile_names.split(" ")[0];
     }
   
     select_random_tile_at_random_cell(){
@@ -47,8 +52,6 @@ class Grid {
     }
 
     collapse(cords){
-        
-
         var changes = true;
         var queue = [cords];
 
@@ -81,9 +84,7 @@ class Grid {
                 }
                 this.cells[x+1][y].tiles = tiles;
             }
-
         }
-        
     }
 
     compute(){
@@ -94,16 +95,22 @@ class Grid {
     render(){
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
-                if(this.cells[i][j].tiles.length > 0)
-                    image(
-                        this.cells[i][j].tiles[0].img, 
-                        i*this.dx, j*this.dy, this.dx, this.dy);
+                if(this.cells[i][j].tiles.length > 0){
+                    var tile = this.cells[i][j].tiles[0];
+                    push();
+                    // imageMode(CENTER);
+                    
+                    translate(i*this.dx, j*this.dy);
+                    if(tile.rotate_render)
+                        rotate(PI/2*tile.rotation);
+                    image(tile.img, 0, 0, this.dx, this.dy);
+                    pop();
+                }
                 else
                     console.log(i, j);
             }
         }
     }
-      
 }
 
 

@@ -33,7 +33,7 @@ class Tile {
             if(this.filename in imgs){
                 return imgs[this.filename];
             }else{
-                return imgs[this.name + " 0"];
+                return imgs[this.filename + " 0"];
             }
         }
     }
