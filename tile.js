@@ -14,7 +14,7 @@ class Tile {
 
     static build(filename, symmetry, imgs){
         var tiles = {};
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < 4; i++) {
             var tile = new Tile(filename, symmetry, i, imgs);
             tiles[tile.name] = tile;
         }

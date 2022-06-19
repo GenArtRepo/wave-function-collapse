@@ -34,14 +34,15 @@ class Grid {
             var left, l_rotation;
             [left, l_rotation] = link["left"].split(" ");
             l_rotation = parseInt(l_rotation);
-            if(typeof l_rotation === 'undefined')
+            if(isNaN(l_rotation))
                 l_rotation = 0
+
             var l_symetry = tiles[left + " " + l_rotation].symmetry;
             
             var right, r_rotation;
             [right, r_rotation] = link["right"].split(" ");
             r_rotation = parseInt(r_rotation);
-            if(typeof r_rotation === 'undefined')
+            if(isNaN(r_rotation))
                 r_rotation = 0
             var r_symetry = tiles[right + " " + r_rotation].symmetry
             
@@ -81,9 +82,9 @@ class Grid {
 
             var l_syms = symmetries[l_symetry][(2 + l_rotation) % 4];
             var r_syms = symmetries[r_symetry][r_rotation % 4];
-            console.log(l_syms, r_syms);
+            // console.log(l_syms, r_syms);
 
-            console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
+            // console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 4; j++){
                     var new_l_rotation = (l_rotation + j) % 4;
@@ -92,9 +93,9 @@ class Grid {
                     var l_connection = (4*3 + 2 - i - j) % 4;
                     var r_connection = (4*3 - i - j) % 4;
 
-                    console.log(new_l_rotation, l_connection, new_r_rotation, r_connection);
+                    // console.log(new_l_rotation, l_connection, new_r_rotation, r_connection);
 
-                    console.log(l_connection, j, r_connection, i, (4 + l_connection + j)%4, (4 + r_connection + i)%4)
+                    // console.log(l_connection, j, r_connection, i, (4 + l_connection + j)%4, (4 + r_connection + i)%4)
                     if(
                         l_syms.includes((l_rotation + l_connection + j)%4) & 
                         r_syms.includes((r_rotation + r_connection + i)%4) & 
@@ -104,12 +105,10 @@ class Grid {
                             var outer_l_rotation = (new_l_rotation + k) % 4;
                             var outer_r_rotation = (new_r_rotation + k) % 4;
 
-                            // console.log(l_connection)
                             var outer_l_connection = (4 + l_connection - k) % 4;
                             var outer_r_connection = (4 + r_connection - k) % 4;
-                            // console.log(outer_l_connection)
 
-                            console.log([outer_l_rotation, outer_l_connection, outer_r_rotation, outer_r_connection]);
+                            // console.log([outer_l_rotation, outer_l_connection, outer_r_rotation, outer_r_connection]);
                             tiles[left + " " + outer_l_rotation].connections[outer_l_connection].add(right + " " + outer_r_rotation);
                             tiles[right + " " + outer_r_rotation].connections[outer_r_connection].add(left + " " + outer_l_rotation);
                         }
@@ -118,7 +117,7 @@ class Grid {
             }           
         }
 
-        console.log(tiles["waterside 0"],);
+        // console.log(tiles["waterside 0"],);
 
         var list_tiles = [];
         for(let tile of Object.keys(tiles))
@@ -145,8 +144,6 @@ class Grid {
 
         var i_tile = Math.floor(Math.random()*this.cells[i][j].tiles.length);
         this.cells[i][j].tiles = [this.cells[i][j].tiles[i_tile]];
-
-        // console.log(i, j, this.cells[i][j].tiles[0].name)
 
         return [i, j];
     }
@@ -216,7 +213,6 @@ class Grid {
             this.propagate(cords);
             this.updateEntropy();
         }
-        
     }    
 
     render(){

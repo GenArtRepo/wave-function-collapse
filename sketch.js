@@ -5,8 +5,16 @@
 */
 
 let dir;
-let data;
-
+let data = {
+    "Castle": {dir:"samples/Castle/"},
+    "Circles": {dir:"samples/Circles/"},
+    "Circuit": {dir:"samples/Circuit/"},
+    "Floor_Plan": {dir:"samples/FloorPlan/"},
+    "Knots": {dir:"samples/Knots/"},
+    "Rooms": {dir:"samples/Rooms/"},
+    "Summer": {dir:"samples/Summer/"},
+};
+let grids = {};
 let symmetries = {
     X:{
         0:[0, 1, 2, 3],
@@ -25,49 +33,70 @@ let symmetries = {
         1:[1, 2],
         2:[1, 2],
         3:[0, 3]
+    },
+    I:{
+        0:[0, 2],
+        1:[1, 3],
+        2:[0, 2],
+        3:[1, 3]
+    },
+    F:{
+        0:[0, 1],
+        1:[0, 1],
+        2:[2],
+        3:[3]
     }
+}
+symmetries["\\"] = {
+    0:[0],
+    1:[1],
+    2:[2],
+    3:[3],
 }
 
 let settings = { 
     Generate: function(){ init(); },    
+    Sample: "Castle",
 }
 
 function preload(){
-    dir = "samples/Summer/";
-    data = {}
-    loadXML(dir + "data.xml", (xml) => {
-        data["images"] = {};
-        data["tiles"] = {};
-        for(let tile of xml.getChildren('tile')){
-            var name = tile.getString("name")
-            data["tiles"][name] = tile.getString("symmetry");
-            
-            if (!dir.includes("Summer")){
-                img_dir = dir + name + ".png";
-                data["images"][name] = loadImage(img_dir);
-            }else{
-                n = 4
-                if (data["tiles"][name] == "X")
-                    n = 1
+    for(let [key, subdata] of Object.entries(data)){
+        loadXML(subdata["dir"] + "data.xml", (xml) => {
+            subdata["images"] = {};
+            subdata["tiles"] = {};
 
-                for (let i = 0; i < n; i++) {
-                    rot_name = name + " " + i;
-                    img_dir = dir + rot_name+ ".png";
-                    data["images"][rot_name] = loadImage(img_dir);   
-                } 
+            for(let tile of xml.getChildren('tiles')[0].getChildren('tile')){
+                var name = tile.getString("name")
+                subdata["tiles"][name] = tile.getString("symmetry");
+                
+                if (!subdata["dir"].includes("Summer")){
+                    img_dir = subdata["dir"] + name + ".png";
+                    subdata["images"][name] = loadImage(img_dir);
+                }else{
+                    n = 4
+                    if (subdata["tiles"][name] == "X")
+                        n = 1
+
+                    for (let i = 0; i < n; i++) {
+                        rot_name = name + " " + i;
+                        img_dir = subdata["dir"] + rot_name+ ".png";
+                        subdata["images"][rot_name] = loadImage(img_dir);   
+                    } 
+                }
             }
-             
-        }
 
-        data["neighbors"] = [];
-        for(let neighbor of xml.getChildren('neighbor')){
-            var new_neighbor = {
-                "left": neighbor.getString("left"),
-                "right": neighbor.getString("right")
-            };
-            data["neighbors"].push(new_neighbor);         
-        }
-    });
+            subdata["neighbors"] = [];
+            for(let neighbor of xml.getChildren('neighbor')){
+                var new_neighbor = {
+                    "left": neighbor.getString("left"),
+                    "right": neighbor.getString("right")
+                };
+                subdata["neighbors"].push(new_neighbor);         
+            }
+
+            data[key] = subdata;
+        });
+    }
 }
 
 function gui(){
@@ -75,22 +104,29 @@ function gui(){
     var gui = new dat.GUI();
     gui.width = 150;
     gui.add(settings,'Generate');
+    gui.add(
+        settings, 'Sample', 
+        [ 'Castle', 'Circles', 'Circuit', 
+        'Floor_Plan', 'Knots', 'Rooms', 'Summer'] );
 }
 
 function setup(){
     gui();
     createCanvas(720, 400);
+    background(255);
+    noLoop();
+
+    for(let key of Object.keys(data)){
+        grids[key] = new Grid(data[key]);
+    }
+
     init();
 }
 
 function init(){
-    background(0);
-    grid = new Grid(data);
-    grid.compute();
-    grid.render();
+    grids[settings.Sample].compute();
+    grids[settings.Sample].render();    
 }
 
-function draw(){
-    
-}
+function draw(){}
 
