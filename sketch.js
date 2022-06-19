@@ -124,6 +124,7 @@ function setup(){
 }
 
 function init(){
+    grids[settings.Sample] = new Grid(data[settings.Sample]);
     grids[settings.Sample].compute();
     grids[settings.Sample].render();    
 }
