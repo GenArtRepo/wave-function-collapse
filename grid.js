@@ -77,10 +77,8 @@ class Grid {
             // [0, 2, 1, 0] [0, 0, 1, 0]
             // [0, 2, 3, 0] [0, 0, 3, 0]
 
-            console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
+            // console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
             for (let i = 0; i < 4; i++) {
-                // var left_tile = left + " " + l_rotation;
-                // var right_tile = right + " " + r_rotation + i;
 
                 for (let j = 0; j < 4; j++){
                     var new_l_rotation = (l_rotation + j) % 4;
@@ -90,17 +88,24 @@ class Grid {
                     var r_syms = symmetries[r_symetry][new_r_rotation % 4];
                     
 
-                    var l_connection = abs(2 - i - j) % 4;
-                    var r_connection = abs(4 - i - j) % 4;
+                    var l_connection = (10 - i - j) % 4;
+                    var r_connection = (12 - i - j) % 4;
 
                     if(l_syms.includes(l_connection) & r_syms.includes(r_connection) & abs(l_connection-2)%4 == r_connection){
-                        console.log([new_l_rotation, l_connection, new_r_rotation, r_connection]);
-                        tiles[left + " " + new_l_rotation].connections[l_connection].add(right + " " + new_r_rotation);
-                        tiles[right + " " + new_r_rotation].connections[r_connection].add(left + " " + new_l_rotation);
-                    }
-                        
+                        for(let k=0; k<4; k++){
+                            var outer_l_rotation = (new_l_rotation + k) % 4;
+                            var outer_r_rotation = (new_r_rotation + k) % 4;
+
+                            var outer_l_connection = (4 + l_connection - k) % 4;
+                            var outer_r_connection = (4 + r_connection - k) % 4;
+
+
+                            // console.log([outer_l_rotation, outer_l_connection, outer_r_rotation, outer_r_connection]);
+                            tiles[left + " " + outer_l_rotation].connections[outer_l_connection].add(right + " " + outer_r_rotation);
+                            tiles[right + " " + outer_r_rotation].connections[outer_r_connection].add(left + " " + outer_l_rotation);
+                        }
+                    }  
                 }
-                
             }           
         }
 
