@@ -1,12 +1,11 @@
 class Tile {
     constructor(filename, symmetry, rotation, imgs) {
+        this.name = filename + " " + rotation;
         this.filename = filename;
         this.symmetry = symmetry;
         this.rotation = rotation;
         this.rotate_render = true;
 
-        this.name = filename + " " + rotation;
-        
         this.img = this.getImage(imgs);
                 
         this.connections = [new Set(), new Set(), new Set(), new Set()];
@@ -15,7 +14,6 @@ class Tile {
 
     static build(filename, symmetry, imgs){
         var tiles = {};
-        // var n = symmetry=="X" ? 1 : 4;
         for (let i = 0; i < n; i++) {
             var tile = new Tile(filename, symmetry, i, imgs);
             tiles[tile.name] = tile;

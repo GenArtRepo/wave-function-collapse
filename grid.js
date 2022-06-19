@@ -76,33 +76,40 @@ class Grid {
 
 
             // T┌
-            // [0, 2, 1, 0] [0, 0, 1, 0]
+            // [0, 0, 1, 2] [0, 2, 1, 0]
             // [0, 2, 3, 0] [0, 0, 3, 0]
 
-            // console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
-            for (let i = 0; i < 4; i++) {
+            var l_syms = symmetries[l_symetry][(2 + l_rotation) % 4];
+            var r_syms = symmetries[r_symetry][r_rotation % 4];
+            console.log(l_syms, r_syms);
 
+            console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
+            for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 4; j++){
                     var new_l_rotation = (l_rotation + j) % 4;
                     var new_r_rotation = (r_rotation + i) % 4;
 
-                    var l_syms = symmetries[l_symetry][(2 + new_r_rotation) % 4];
-                    var r_syms = symmetries[r_symetry][new_r_rotation % 4];
-                    
+                    var l_connection = (4*3 + 2 - i - j) % 4;
+                    var r_connection = (4*3 - i - j) % 4;
 
-                    var l_connection = (10 - i - j) % 4;
-                    var r_connection = (12 - i - j) % 4;
+                    console.log(new_l_rotation, l_connection, new_r_rotation, r_connection);
 
-                    if(l_syms.includes(l_connection) & r_syms.includes(r_connection) & abs(l_connection-2)%4 == r_connection){
+                    console.log(l_connection, j, r_connection, i, (4 + l_connection + j)%4, (4 + r_connection + i)%4)
+                    if(
+                        l_syms.includes((l_rotation + l_connection + j)%4) & 
+                        r_syms.includes((r_rotation + r_connection + i)%4) & 
+                        (4+l_connection-2)%4 == r_connection){
+                            
                         for(let k=0; k<4; k++){
                             var outer_l_rotation = (new_l_rotation + k) % 4;
                             var outer_r_rotation = (new_r_rotation + k) % 4;
 
+                            // console.log(l_connection)
                             var outer_l_connection = (4 + l_connection - k) % 4;
                             var outer_r_connection = (4 + r_connection - k) % 4;
+                            // console.log(outer_l_connection)
 
-
-                            // console.log([outer_l_rotation, outer_l_connection, outer_r_rotation, outer_r_connection]);
+                            console.log([outer_l_rotation, outer_l_connection, outer_r_rotation, outer_r_connection]);
                             tiles[left + " " + outer_l_rotation].connections[outer_l_connection].add(right + " " + outer_r_rotation);
                             tiles[right + " " + outer_r_rotation].connections[outer_r_connection].add(left + " " + outer_l_rotation);
                         }
@@ -111,24 +118,39 @@ class Grid {
             }           
         }
 
+        console.log(tiles["waterside 0"],);
+
         var list_tiles = [];
         for(let tile of Object.keys(tiles))
             list_tiles.push(tiles[tile]);
 
         return list_tiles;
     }
+
+    updateEntropy(){
+        this.entropy_cells = [];
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                if(this.cells[i][j].tiles.length > 1)
+                    this.entropy_cells.push([i, j]);
+            }
+        }
+    }
   
     collapse(){
+        
         var cell = Math.floor(Math.random()*this.entropy_cells.length);
-
         var i = this.entropy_cells[cell][0];
         var j = this.entropy_cells[cell][1];
 
         var i_tile = Math.floor(Math.random()*this.cells[i][j].tiles.length);
         this.cells[i][j].tiles = [this.cells[i][j].tiles[i_tile]];
-        
+
+        // console.log(i, j, this.cells[i][j].tiles[0].name)
+
         return [i, j];
     }
+    
 
     propagate(cords){
         this.changes = true;
@@ -172,26 +194,19 @@ class Grid {
                 if(tiles.length != this.cells[x][y].tiles.length){
                     if(tiles.length<1){
                         this.changes = false;
-                        console.log(x,y, "no length");
+                        // console.log(x,y, "no length");
+                        // console.log(allowed_tiles);
+                        // console.log(this.cells[x][y].tiles)
                         return;
                     }
                     this.queue.push([x, y]);
                     this.cells[x][y].tiles = tiles;
+
+                    // console.log(x, y, tiles);
                 }
             }
         }
     }
-
-    updateEntropy(){
-        this.entropy_cells = [];
-        for (let i = 0; i < this.width; i++) {
-            for (let j = 0; j < this.height; j++) {
-                if(this.cells[i][j].tiles.length > 1)
-                    this.entropy_cells.push([i, j]);
-            }
-        }
-    }
-
 
     compute(){
         this.updateEntropy();
@@ -212,7 +227,7 @@ class Grid {
                     push();                  
                     translate(i*this.dx + this.dx/2, j*this.dy + this.dy/2);
                     if(tile.rotate_render)
-                        rotate(PI/2*tile.rotation);
+                        rotate(-PI/2*tile.rotation);
                     imageMode(CENTER);
                     image(tile.img, 0, 0, this.dx, this.dy);
                     pop();
