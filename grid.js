@@ -15,7 +15,12 @@ class Grid {
                 this.cells[i][j] = new Cell(i, j, this.tiles);
             }
         }
+
+        this.changes;
+        this.queue = [];
     }
+
+
 
     buildTiles(data){
         var tiles = {};
@@ -24,11 +29,79 @@ class Grid {
                 Tile.build(tile, symmetry, data['images']));
 
         for(let link of data["neighbors"]){
-            var left = link["left"];
-            var right = link["right"];
+            var left, l_rotation;
+            [left, l_rotation] = link["left"].split(" ");
+            l_rotation = parseInt(l_rotation);
+            if(typeof l_rotation === 'undefined')
+                l_rotation = 0
+            var l_symetry = tiles[left + " " + l_rotation].symmetry;
+            
+            var right, r_rotation;
+            [right, r_rotation] = link["right"].split(" ");
+            r_rotation = parseInt(r_rotation);
+            if(typeof r_rotation === 'undefined')
+                r_rotation = 0
+            var r_symetry = tiles[right + " " + r_rotation].symmetry
+            
 
-            tiles[left].addNeighbor(right, 'right');    
-            tiles[right].addNeighbor(left, 'left'); 
+            // [R1, C1, R2, C2]
+
+            // TT
+            // [0, 2, 0, 0] [0, 0, 0, 0]
+            // ┴T
+            // [0, 0, 2, 2] [0, 2, 2, 2]
+
+            // T┴
+            // [0, 2, 2, 0] [0, 0, 2, 0]
+            // [0, 0, 0, 2] [0, 2, 0, 2]
+
+            // XT
+            // [0, 2, 0, 0] [0, 0, 0, 0]
+            // [0, 3, 1, 1] [0, 1, 1, 1]
+            // [0, 0, 2, 2] [0, 2, 2, 2]
+            // [0, 1, 3, 3] [0, 3, 3, 3]
+
+            // X┴ 
+            // [0, 2, 2, 0] [0, 0, 2, 0]
+            // [0, 3, 3, 1] [0, 1, 3, 1]
+            // [0, 0, 0, 2] [0, 2, 0, 2]
+            // [0, 1, 1, 3] [0, 3, 1, 3]
+
+
+            // TL    
+            // [0, 2, 0, 0] [0, 0, 0, 0]
+            // [0, 0, 2, 2] [0, 2, 2, 2]
+
+
+            // T┌
+            // [0, 2, 1, 0] [0, 0, 1, 0]
+            // [0, 2, 3, 0] [0, 0, 3, 0]
+
+            console.log(left, l_rotation, l_symetry, right, r_rotation, r_symetry);
+            for (let i = 0; i < 4; i++) {
+                // var left_tile = left + " " + l_rotation;
+                // var right_tile = right + " " + r_rotation + i;
+
+                for (let j = 0; j < 4; j++){
+                    var new_l_rotation = (l_rotation + j) % 4;
+                    var new_r_rotation = (r_rotation + i) % 4;
+
+                    var l_syms = symmetries[l_symetry][(2 + new_r_rotation) % 4];
+                    var r_syms = symmetries[r_symetry][new_r_rotation % 4];
+                    
+
+                    var l_connection = abs(2 - i - j) % 4;
+                    var r_connection = abs(4 - i - j) % 4;
+
+                    if(l_syms.includes(l_connection) & r_syms.includes(r_connection) & abs(l_connection-2)%4 == r_connection){
+                        console.log([new_l_rotation, l_connection, new_r_rotation, r_connection]);
+                        tiles[left + " " + new_l_rotation].connections[l_connection].add(right + " " + new_r_rotation);
+                        tiles[right + " " + new_r_rotation].connections[r_connection].add(left + " " + new_l_rotation);
+                    }
+                        
+                }
+                
+            }           
         }
 
         var list_tiles = [];
@@ -38,57 +111,65 @@ class Grid {
         return list_tiles;
     }
 
-    addLink(tile_name){
-        tile_base = tile_names.split(" ")[0];
-    }
   
-    select_random_tile_at_random_cell(){
+    collapse(){
         var i = Math.floor(Math.random()*this.width);
         var j = Math.floor(Math.random()*this.height);
 
         var i_tile = Math.floor(Math.random()*this.cells[i][j].tiles.length);
         this.cells[i][j].tiles = [this.cells[i][j].tiles[i_tile]];
+
         return [i, j];
     }
 
-    collapse(cords){
-        var changes = true;
-        var queue = [cords];
+    propagate(cords){
+        this.changes = true;
+        this.queue = [cords];
 
-        while(changes){
+        while(this.changes){
 
-            var cords = queue.pop(0);
+            var cords = this.queue.pop(0);
             var x = cords[0];
             var y = cords[1];
 
-            var right = new Set();
-            var left = new Set();
+
+            var t_connections = [new Set(), new Set(), new Set(), new Set()]
             for(let tile of this.cells[x][y].tiles){
-                right = new Set([...right, ...tile.right]);
-                left = new Set([...left, ...tile.left]);
+                for(let i = 0; i < 4; i++)
+                    t_connections[i] = new Set([...t_connections[i], ...tile.connections[i]]);
             }
 
-                
-            changes = false;
+            this.changes = false;
+            //Left
+            this.updateCell(x-1, y, t_connections[0]);
+            //Up
+            this.updateCell(x, y-1, t_connections[1]);
             //Right
-            if(x + 1 >= 0 & x + 1 < this.cells.length){
+            this.updateCell(x+1, y, t_connections[2]);
+            //Down
+            this.updateCell(x, y+1, t_connections[3]);
+        }
+    }
+
+    updateCell(x, y, allowed_tiles){
+        if(x >= 0 & x < this.cells.length){
+            if(y >= 0 & y < this.cells[x].length){
                 var tiles = []
-                for(let tile of this.cells[x+1][y].tiles){
-                    
-                    if(right.has(tile.filename)){
+                for(let tile of this.cells[x][y].tiles){
+                    if(allowed_tiles.has(tile.name)){
                         tiles.push(tile);
                     }else{
-                        changes = true;
-                        queue.push([x+1, y]);
+                        this.changes = true;
+                        this.queue.push([x, y]);
                     }        
                 }
-                this.cells[x+1][y].tiles = tiles;
+                this.cells[x][y].tiles = tiles;
             }
         }
     }
 
     compute(){
-        var cords = this.select_random_tile_at_random_cell()
+        var cords = this.collapse()
         this.collapse(cords);
     }    
 
@@ -97,17 +178,18 @@ class Grid {
             for (let j = 0; j < this.height; j++) {
                 if(this.cells[i][j].tiles.length > 0){
                     var tile = this.cells[i][j].tiles[0];
-                    push();
-                    // imageMode(CENTER);
-                    
-                    translate(i*this.dx, j*this.dy);
+                    push();                  
+                    translate(i*this.dx + this.dx/2, j*this.dy + this.dy/2);
                     if(tile.rotate_render)
                         rotate(PI/2*tile.rotation);
+                    imageMode(CENTER);
                     image(tile.img, 0, 0, this.dx, this.dy);
                     pop();
                 }
-                else
-                    console.log(i, j);
+                else{
+                    // console.log(i, j);
+                }
+                    
             }
         }
     }

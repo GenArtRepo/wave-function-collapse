@@ -9,16 +9,14 @@ class Tile {
         
         this.img = this.getImage(imgs);
                 
-        this.up = new Set();
-        this.down = new Set();
-        this.right = new Set();
-        this.left = new Set();
+        this.connections = [new Set(), new Set(), new Set(), new Set()];
         this.collapse = false;
     }
 
     static build(filename, symmetry, imgs){
         var tiles = {};
-        for (let i = 0; i < 4; i++) {
+        // var n = symmetry=="X" ? 1 : 4;
+        for (let i = 0; i < n; i++) {
             var tile = new Tile(filename, symmetry, i, imgs);
             tiles[tile.name] = tile;
         }
