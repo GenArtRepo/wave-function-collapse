@@ -18,6 +18,8 @@ class Grid {
 
         this.changes;
         this.queue = [];
+
+        this.entropy_cells = [];
     }
 
 
@@ -115,15 +117,16 @@ class Grid {
 
         return list_tiles;
     }
-
   
     collapse(){
-        var i = Math.floor(Math.random()*this.width);
-        var j = Math.floor(Math.random()*this.height);
+        var cell = Math.floor(Math.random()*this.entropy_cells.length);
+
+        var i = this.entropy_cells[cell][0];
+        var j = this.entropy_cells[cell][1];
 
         var i_tile = Math.floor(Math.random()*this.cells[i][j].tiles.length);
         this.cells[i][j].tiles = [this.cells[i][j].tiles[i_tile]];
-
+        
         return [i, j];
     }
 
@@ -131,12 +134,13 @@ class Grid {
         this.changes = true;
         this.queue = [cords];
 
-        while(this.changes){
+        var i = 0;
+        while(this.queue.length > 0){
 
             var cords = this.queue.pop(0);
             var x = cords[0];
             var y = cords[1];
-
+        
 
             var t_connections = [new Set(), new Set(), new Set(), new Set()]
             for(let tile of this.cells[x][y].tiles){
@@ -144,7 +148,6 @@ class Grid {
                     t_connections[i] = new Set([...t_connections[i], ...tile.connections[i]]);
             }
 
-            this.changes = false;
             //Left
             this.updateCell(x-1, y, t_connections[0]);
             //Up
@@ -163,19 +166,42 @@ class Grid {
                 for(let tile of this.cells[x][y].tiles){
                     if(allowed_tiles.has(tile.name)){
                         tiles.push(tile);
-                    }else{
-                        this.changes = true;
-                        this.queue.push([x, y]);
-                    }        
+                    }      
                 }
-                this.cells[x][y].tiles = tiles;
+
+                if(tiles.length != this.cells[x][y].tiles.length){
+                    if(tiles.length<1){
+                        this.changes = false;
+                        console.log(x,y, "no length");
+                        return;
+                    }
+                    this.queue.push([x, y]);
+                    this.cells[x][y].tiles = tiles;
+                }
             }
         }
     }
 
+    updateEntropy(){
+        this.entropy_cells = [];
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                if(this.cells[i][j].tiles.length > 1)
+                    this.entropy_cells.push([i, j]);
+            }
+        }
+    }
+
+
     compute(){
-        var cords = this.collapse()
-        this.collapse(cords);
+        this.updateEntropy();
+
+        while(this.entropy_cells.length > 0){
+            var cords = this.collapse()
+            this.propagate(cords);
+            this.updateEntropy();
+        }
+        
     }    
 
     render(){
