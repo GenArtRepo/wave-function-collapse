@@ -113,7 +113,6 @@ function gui(){
 function setup(){
     gui();
     createCanvas(720, 400);
-    background(255);
     noLoop();
 
     for(let key of Object.keys(data)){
@@ -124,6 +123,7 @@ function setup(){
 }
 
 function init(){
+    background(255);
     grids[settings.Sample] = new Grid(data[settings.Sample]);
     grids[settings.Sample].compute();
     grids[settings.Sample].render();    
