@@ -60,7 +60,7 @@
 		<neighbor left="water_b 0" right="waterturn 1"/>
 		<neighbor left="water_c 0" right="waterside 1"/>
 		<neighbor left="water_c 0" right="waterturn 1"/>
-		<neighbor left="waterturn 1" right="waterturn 1"/>
+		<neighbor left="waterturn 1" right="waterturn 0"/>
 		<neighbor left="watercorner 0" right="waterside 0"/>
 		<neighbor left="watercorner 0" right="waterturn 0"/>
 		<neighbor left="waterside 0" right="waterside 0"/>

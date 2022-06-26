@@ -1,6 +1,39 @@
 /*
 ** Wave Function Collapse
 * Cristian Rojas Cardenas, April 2022
+* 
+* The algorithm operates over a grid of cells, each cell is initialized with a list 
+* of possible values of tiles that it could take. A tile is arranged by the image 
+* name and the rotation, it means that for every image we can obtain 4 tiles:
+* 					
+*                             waterturn 0
+* 
+* Also, a tile has certain defined rules for the tiles that can be at their side, it 
+* can only take a place if all their neighbors are allowed in their lists for each 
+* side, which change depending on the rotation. The sides are numerated in the next
+* way:
+* 
+*                                   1
+*                                 0| |2
+*                                   3
+* 
+* The algorithm follows the next actions to select which tiles should be used in each 
+* cell:
+* 
+*         1.  The grid is initialized in an unobserved state, all the cells could 
+*             take any of the tiles.
+*         2.  Repeat:
+*             a.	Collapse one of random cell: Choose a random cell and assign a 
+*                   random tile from the possible values that it could take.
+*             b.	Propagate: Iterate over all the neighbors of the chosen cell and 
+*                   update their list of possible tiles, continue until no more cells 
+*                   can be updated.
+*             c.    Update the entropy list.
+*         3.  Render when all the cells are set.
+* 
+* For deeper information about the wave function collapse algorithm or the load of 
+* images please check:
+* 
 * https://discourse.processing.org/t/wave-collapse-function-algorithm-in-processing/12983/3
 */
 
@@ -15,6 +48,7 @@ let data = {
     "Summer": {dir:"samples/Summer/"},
 };
 let grids = {};
+
 let symmetries = {
     X:{
         0:[0, 1, 2, 3],
@@ -51,7 +85,7 @@ symmetries["\\"] = {
     0:[0],
     1:[1],
     2:[2],
-    3:[3],
+    3:[3]
 }
 
 let settings = { 
@@ -60,6 +94,7 @@ let settings = {
 }
 
 function preload(){
+    // Load all the XML files and images
     for(let [key, subdata] of Object.entries(data)){
         loadXML(subdata["dir"] + "data.xml", (xml) => {
             subdata["images"] = {};
@@ -104,7 +139,7 @@ function gui(){
     var gui = new dat.GUI();
     gui.width = 150;
     gui.add(settings,'Generate');
-    gui.add(
+    gui.add(    
         settings, 'Sample', 
         [ 'Castle', 'Circles', 'Circuit', 
         'Floor_Plan', 'Knots', 'Rooms', 'Summer'] );
